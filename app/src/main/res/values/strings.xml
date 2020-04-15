@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">Powod</string>
+    <string name="action_refresh">刷新</string>
+    <string name="action_tag">标签</string>
+    <string name="action_search">搜索</string>
+    <string name="action_sorts">排序</string>
+    <string name="action_upload">上传</string>
+    <string name="action_download">下载</string>
+    <string name="action_settings">设置</string>
+    <string name="action_edit">编辑</string>
+    <string name="action_get_net_info">补全</string>
+    <string name="action_increase">增频</string>
+    <string name="action_decrease">减频</string>
+    <string name="action_delete">删除</string>
+    <string name="detail_hint_mean">\n词义</string>
+    <string name="detail_hint_tags">\n标签</string>
+    <string name="detail_hint_syno">\n近义词</string>
+    <string name="detail_hint_anto">\n反义词</string>
+    <string name="detail_hint_freq">\n使用频次</string>
+    <string name="detail_hint_addt">\n创建日期</string>
+    <string name="detail_placehoder">\n</string>
+    <string name="word_add">添加</string>
+    <string name="word_add_ctnt">词语</string>
+    <string name="word_add_pron">读音</string>
+    <string name="word_add_mean">词义</string>
+    <string name="word_add_tags">标签 (以空格分隔)</string>
+    <string name="word_add_syno">近义词 (以空格分隔)</string>
+    <string name="word_add_anto">反义词 (以空格分隔)</string>
+    <string name="edit">保存</string>
+    <string name="edit_ctnt">词语</string>
+    <string name="edit_pron">读音</string>
+    <string name="edit_mean">词义</string>
+    <string name="edit_tags">标签 (以空格分隔)</string>
+    <string name="edit_syno">近义词 (以空格分隔)</string>
+    <string name="edit_anto">反义词 (以空格分隔)</string>
+    <string name="setting_clear">清空列表</string>
+    <string name="setting_input_ip">服务器地址</string>
+    <string name="setting_input_port">端口</string>
+    <string name="setting_input_project">项目名称</string>
+
+</resources>
