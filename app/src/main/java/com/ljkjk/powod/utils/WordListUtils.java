@@ -1,5 +1,10 @@
 package com.ljkjk.powod.utils;
 
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
+
+import com.ljkjk.powod.SortType;
 import com.ljkjk.powod.entity.Word;
 
 import java.text.Collator;
@@ -12,13 +17,13 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class WordListUtils {
-    public static List<Word> wordList = new LinkedList<>();
+    private static List<Word> wordList = new LinkedList<>();
 
     public static List<Word> list() {
         return wordList;
     }
 
-    public static List<Word> fullList(DBUtils db) {
+    public static List<Word> fullList(DatabaseUtils db) {
         return db.getAllWords();
     }
 
@@ -48,18 +53,33 @@ public class WordListUtils {
         return null;
     }
 
-    public static void getWordList(DBUtils db) {
+    public static void getWordList(DatabaseUtils db) {
         clear();
         wordList = db.getAllWords();
     }
 
-    public static List<Word> getWordListByKey(DBUtils db, String key) {
+    public static List<Word> getWordListByTag(DatabaseUtils db, String TAG){
+        List<Word> result = new LinkedList<>();
+        List<Word> tempWordList = db.getAllWords();
+        for (Word word: tempWordList){
+            String[] tags = word.getTags().split(" ");
+            for (String tag: tags){
+                if (TAG.contentEquals(tag)){
+                    result.add(word);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    public static List<Word> getWordListByKey(DatabaseUtils db, String key) {
         List<Word> result = new LinkedList<>();
         List<Word> words = db.getAllWords();
         for (Word word: words) {
             if (word.getCtnt().contains(key)){
                 result.add(word);
-                break;
+                continue;
             }
 
             if (word.getTags() != null) {
@@ -75,9 +95,9 @@ public class WordListUtils {
         return result;
     }
 
-    public static void sort(String sortType) {
+    public static void sort(SortType sortType) {
         switch (sortType) {
-            case "默认":
+            case DEFAULT:
                 Collections.sort(wordList, new Comparator<Word>() {
                     @Override
                     public int compare(Word o1, Word o2) {
@@ -85,26 +105,32 @@ public class WordListUtils {
                     }
                 });
                 break;
-            case "注音":
+            case DATE:
                 Collections.sort(wordList, new Comparator<Word>() {
                     @Override
                     public int compare(Word o1, Word o2) {
-                        return o1.getPron().compareToIgnoreCase(o2.getPron());
+                        return -o1.getAddt().compareTo(o2.getAddt());
                     }
                 });
                 break;
-            case "时间":
+            case FREQUENCY:
                 Collections.sort(wordList, new Comparator<Word>() {
+                    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
                     @Override
                     public int compare(Word o1, Word o2) {
-                        return o1.getAddt().compareTo(o2.getAddt());
+                        if (o1.getFreq() < o2.getFreq()) {
+                            return -1;
+                        } else if (o1.getFreq() > o2.getFreq()) {
+                            return 1;
+                        } else {
+                            return Collator.getInstance(Locale.CHINESE).compare(o1.getCtnt(), o2.getCtnt());
+                        }
                     }
                 });
-                break;
         }
     }
 
-    public static String[] getTags(DBUtils db){
+    public static String[] getTags(DatabaseUtils db){
         List<Word> words = db.getAllWords();
         Map<String, Boolean> map = new TreeMap<>();
         for (Word word: words){
@@ -122,5 +148,37 @@ public class WordListUtils {
 
     public static int size() {
         return wordList.size();
+    }
+
+    public static String nextWordCtnt(String ctnt) {
+        int index = -1;
+        for (int i = 0; i < size(); i++) {
+            if (get(i).getCtnt().contentEquals(ctnt)) {
+                index = i+1;
+                if (index < size()) {
+                    System.out.println(index + ": " + wordList.get(index).getCtnt());
+                    return wordList.get(index).getCtnt();
+                } else {
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static String prevWordCtnt(String ctnt) {
+        int index = -1;
+        for (int i = 0; i < size(); i++) {
+            if (get(i).getCtnt().contentEquals(ctnt)) {
+                index = i-1;
+                if (index >= 0) {
+                    System.out.println(index + ": " + wordList.get(index).getCtnt());
+                    return wordList.get(index).getCtnt();
+                } else {
+                    return null;
+                }
+            }
+        }
+        return null;
     }
 }

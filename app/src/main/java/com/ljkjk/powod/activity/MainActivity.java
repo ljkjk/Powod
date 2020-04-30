@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -28,11 +29,12 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.ljkjk.powod.R;
+import com.ljkjk.powod.SortType;
 import com.ljkjk.powod.entity.Word;
-import com.ljkjk.powod.utils.DBUtils;
-import com.ljkjk.powod.utils.MyApplication;
+import com.ljkjk.powod.list.WordClassifiedAdapter;
+import com.ljkjk.powod.utils.DatabaseUtils;
+import com.ljkjk.powod.MyApplication;
 import com.ljkjk.powod.utils.Utils;
-import com.ljkjk.powod.utils.WordAdapter;
 import com.ljkjk.powod.utils.WordListUtils;
 
 import org.json.JSONException;
@@ -45,32 +47,36 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
 
     Toolbar toolbar;
-    ListView listView;
+    public ListView listView;
+    // TextView nTotal;
     FloatingActionButton fab;
 
     ProgressDialog pDialog;
     AlertDialog aDialog;
 
-    DBUtils db;
+    DatabaseUtils db;
     SharedPreferences sharedPreferences;
+    SortType currSortType;
 
-    static int curWordListSize;
+    public static boolean isChanged;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar_main);
         fab = findViewById(R.id.fab);
         listView = findViewById(R.id.list_view);
-        db = new DBUtils(getApplicationContext());
+        // nTotal = findViewById(R.id.text_total);
+        db = new DatabaseUtils(getApplicationContext());
         pDialog = new ProgressDialog(this);
         pDialog.setCancelable(true);
         sharedPreferences = getSharedPreferences("serverConfig", MODE_PRIVATE);
+        currSortType = SortType.DEFAULT;
 
         setSupportActionBar(toolbar);
-        refreshWordList();
+        refreshWordList(currSortType);
         Utils.setUrl(sharedPreferences.getString("ip", ""),
                 sharedPreferences.getString("port", ""),
                 sharedPreferences.getString("proj", ""));
@@ -78,8 +84,9 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                curWordListSize = WordListUtils.size();
+                isChanged = false;
                 Intent intent = new Intent(MainActivity.this, WordAddActivity.class);
+                intent.putExtra("pa", "ADD");
                 startActivity(intent);
             }
         });
@@ -87,9 +94,10 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                curWordListSize = WordListUtils.size();
+                isChanged = false;
                 Intent intent = new Intent(MainActivity.this, WordDetailsActivity.class);
-                intent.putExtra("ctnt", WordListUtils.get(position).getCtnt());
+                intent.putExtra("ctnt", ((WordClassifiedAdapter.WordTypeItem) (listView.getAdapter().getItem(position))).getWord().getCtnt());
+                intent.putExtra("pa", "MAIN");
                 startActivity(intent);
             }
         });
@@ -100,25 +108,32 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        // 让listiview也能发起滚动
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            listView.setNestedScrollingEnabled(true);
+        }
     }
 
     // 刷新列表
-    void refreshWordList() {
+    void refreshWordList(SortType sortType) {
         WordListUtils.getWordList(db);
-        WordListUtils.sort("默认");
-        listView.setAdapter(new WordAdapter(MainActivity.this, R.layout.word_list_item, WordListUtils.list()));
+        WordListUtils.sort(sortType);
+        // nTotal.setText(String.format(getResources().getString(R.string.text_total), WordListUtils.size()));
+        listView.setAdapter(new WordClassifiedAdapter(MainActivity.this, WordListUtils.list(), sortType));
     }
 
-    void refreshWordListNotUpdateList() {
-        listView.setAdapter(new WordAdapter(MainActivity.this, R.layout.word_list_item, WordListUtils.list()));
+    void refreshWordListNotUpdateList(SortType sortType) {
+        WordListUtils.sort(sortType);
+        listView.setAdapter(new WordClassifiedAdapter(MainActivity.this, WordListUtils.list(), sortType));
     }
 
     // 返回页面
     @Override
     public void onResume() {
         super.onResume();
-        if (curWordListSize != WordListUtils.size()) {
-            refreshWordList();
+        if (isChanged) {
+            refreshWordList(currSortType);
         }
     }
 
@@ -139,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         switch (id) {
             case R.id.action_refresh:
-                refreshWordList();
+                refreshWordList(currSortType);
                 Toast.makeText(getApplicationContext(), "刷新成功",Toast.LENGTH_LONG).show();
                 return true;
             case R.id.action_tag:
@@ -254,15 +269,25 @@ public class MainActivity extends AppCompatActivity {
 
 
     void actionSorts(){
-        final String[] items = {"默认", "注音", "时间"};
+        final String[] items = {"默认", "时间", "频次"};
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
         dialogBuilder.setTitle("排序方式");
 
         dialogBuilder.setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                WordListUtils.sort(items[i]);
-                refreshWordListNotUpdateList();
+                switch (items[i]) {
+                    case "默认":
+                        currSortType = SortType.DEFAULT;
+                        break;
+                    case "时间":
+                        currSortType = SortType.DATE;
+                        break;
+                    case "频次":
+                        currSortType = SortType.FREQUENCY;
+                        break;
+                }
+                refreshWordListNotUpdateList(currSortType);
                 aDialog.dismiss();
             }
         });
@@ -437,7 +462,7 @@ public class MainActivity extends AppCompatActivity {
                                 db.insertWord(word);
                             }
 
-                            refreshWordList(); //不知道为什么它不刷新
+                            refreshWordList(currSortType); //不知道为什么它不刷新
                             Toast.makeText(getApplicationContext(), "完成下载 " + WordListUtils.size() + " 项", Toast.LENGTH_LONG).show();
 
                         } catch (JSONException e) {
@@ -465,7 +490,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void actionSetting(){
-        curWordListSize = WordListUtils.size();
+        isChanged = false;
         Intent intent = new Intent(MainActivity.this, SettingActivityTemp.class);
         startActivity(intent);
     }

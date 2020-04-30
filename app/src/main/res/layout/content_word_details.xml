@@ -1,151 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".activity.WordDetailsActivity">
-    
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="15dip"
-        android:layout_marginLeft="15dip"
-        android:layout_marginEnd="15dip"
-        android:layout_marginRight="15dip"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/detail_ctnt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dip"
+            android:layout_marginLeft="15dip"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
+            android:fontFamily="@font/huakangbiaokai"
+            android:gravity="bottom|start"
+            android:textColor="@color/textPrimary"
+            android:textSize="32sp" />
 
-            <TextView
-                android:id="@+id/detail_ctnt"
-                android:layout_width="wrap_content"
-                android:layout_height="60dp"
-                android:gravity="bottom|start"
-                android:textColor="@color/textPrimary"
-                android:textSize="32sp" />
-
-            <TextView
-                android:id="@+id/detail_pron"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginStart="15dip"
-                android:layout_marginLeft="15dip"
-                android:gravity="bottom|start"
-                android:textColor="@color/textSecondary"
-                android:textSize="16sp" />
-        </LinearLayout>
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/detail_pron"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/detail_hint_mean"
-                android:textColor="@color/textSecondary"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/detail_mean"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical|start"
-                android:textColor="@color/textPrimary"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/detail_hint_tags"
-                android:textColor="@color/textSecondary"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/detail_tags"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical|start"
-                android:textColor="@color/textPrimary"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/detail_hint_syno"
-                android:textColor="@color/textSecondary"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/detail_syno"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                
-                
-                android:gravity="center_vertical|start"
-                android:textColor="@color/textPrimary"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/detail_hint_anto"
-                android:textColor="@color/textSecondary"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/detail_anto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical|start"
-                android:textColor="@color/textPrimary"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/detail_hint_freq"
-                android:textColor="@color/textSecondary"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/detail_freq"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical|start"
-                android:textColor="@color/textPrimary"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                
-                
-                android:text="@string/detail_hint_addt"
-                android:textColor="@color/textSecondary"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/detail_addt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical|start"
-                android:textColor="@color/textPrimary"
-                android:textSize="20sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/detail_placehoder"/>
-
-
-        </LinearLayout>
+            android:layout_marginStart="15dip"
+            android:layout_marginLeft="15dip"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
+            android:gravity="bottom|start"
+            android:textColor="@color/textSecondary"
+            android:textSize="16sp" />
 
     </LinearLayout>
 
-</ScrollView>
+
+    <com.ljkjk.powod.view.UnScrollListView
+        android:listSelector="#00000000"
+        android:divider="@color/background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/details_list_view">
+    </com.ljkjk.powod.view.UnScrollListView>
+
+</LinearLayout>

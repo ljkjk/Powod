@@ -1,6 +1,9 @@
 package com.ljkjk.powod.activity;
 
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -12,39 +15,37 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.ljkjk.powod.R;
 import com.ljkjk.powod.entity.Word;
-import com.ljkjk.powod.utils.DBUtils;
+import com.ljkjk.powod.list.DetailAdapter;
+import com.ljkjk.powod.listener.OnSwipeTouchListener;
+import com.ljkjk.powod.net.GetCharInfo;
+import com.ljkjk.powod.net.GetWordInfo;
+import com.ljkjk.powod.utils.DatabaseUtils;
+import com.ljkjk.powod.utils.DetailsListUtils;
 import com.ljkjk.powod.utils.Utils;
 import com.ljkjk.powod.utils.WordListUtils;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.util.List;
-
 public class WordDetailsActivity extends AppCompatActivity {
-
+    
     Word word;
+    String pa;
 
+    View view;
+    Toolbar toolbar;
     TextView ctntView;
     TextView pronView;
-    TextView meanView;
-    TextView tagsView;
-    TextView synoView;
-    TextView antoView;
-    TextView freqView;
-    TextView addtView;
+    ListView detailsListView;
 
-    DBUtils db;
+    DatabaseUtils db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,31 +53,101 @@ public class WordDetailsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_word_details);
 
         init();
+        setToolbar();
+        setGesture();
         setText();
     }
 
     void init(){
+        view = findViewById(R.id.detail_view);
+        toolbar = findViewById(R.id.toolbar_word_details);
         ctntView = findViewById(R.id.detail_ctnt);
         pronView = findViewById(R.id.detail_pron);
-        meanView = findViewById(R.id.detail_mean);
-        tagsView = findViewById(R.id.detail_tags);
-        synoView = findViewById(R.id.detail_syno);
-        antoView = findViewById(R.id.detail_anto);
-        freqView = findViewById(R.id.detail_freq);
-        addtView = findViewById(R.id.detail_addt);
-        db = new DBUtils(getApplicationContext());
+        detailsListView = findViewById(R.id.details_list_view);
+        db = new DatabaseUtils(getApplicationContext());
         word = db.getWord(getIntent().getStringExtra("ctnt"));
+        pa = getIntent().getStringExtra("pa");
+
+        // 让listiview也能发起滚动
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            detailsListView.setNestedScrollingEnabled(true);
+        }
+    }
+
+    void setToolbar(){
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    void setGesture() {
+        view.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
+            public void onSwipeTop() { }
+
+            public void onSwipeRight() {
+                prev();
+            }
+
+            public void onSwipeLeft() {
+                next();
+            }
+
+            public void onSwipeBottom() { }
+        });
+
+        detailsListView.setOnTouchListener(new OnSwipeTouchListener(getApplicationContext()) {
+            public void onSwipeTop() { }
+
+            public void onSwipeRight() {
+                prev();
+            }
+
+            public void onSwipeLeft() {
+                next();
+            }
+
+            public void onSwipeBottom() { }
+        });
+    }
+
+    void next() {
+        if (pa.contentEquals("MAIN")) {
+            Intent intent = new Intent(WordDetailsActivity.this, WordDetailsActivity.class);
+            String nextWordCtnt = WordListUtils.nextWordCtnt(word.getCtnt());
+            if (nextWordCtnt != null) {
+                intent.putExtra("ctnt", nextWordCtnt);
+                intent.putExtra("pa", "MAIN");
+                startActivity(intent);
+                overridePendingTransition(R.anim.right_in, R.anim.left_out);
+                finish();
+            }
+        }
+    }
+
+    void prev() {
+        if (pa.contentEquals("MAIN")) {
+            Intent intent = new Intent(WordDetailsActivity.this, WordDetailsActivity.class);
+            String prevWordCtnt = WordListUtils.prevWordCtnt(word.getCtnt());
+            if (prevWordCtnt != null) {
+                intent.putExtra("ctnt", prevWordCtnt);
+                intent.putExtra("pa", "MAIN");
+                startActivity(intent);
+                overridePendingTransition(R.anim.left_in, R.anim.right_out);
+                finish();
+            }
+        }
     }
 
     void setText() {
         ctntView.setText(word.getCtnt());
         pronView.setText(word.getPron());
-        meanView.setText(word.getMean());
-        tagsView.setText(word.getTags());
-        synoView.setText(word.getSyno());
-        antoView.setText(word.getAnto());
-        freqView.setText(String.valueOf(word.getFreq()));
-        addtView.setText(word.getAddt().toString());
+        DetailsListUtils.setDetailsList(word);
+        detailsListView.setAdapter(new DetailAdapter(WordDetailsActivity.this, R.layout.word_details_item, DetailsListUtils.list()));
     }
 
     @Override
@@ -131,13 +202,13 @@ public class WordDetailsActivity extends AppCompatActivity {
         final EditText anto = dialogView.findViewById(R.id.edit_anto);
         final EditText tags = dialogView.findViewById(R.id.edit_tags);
 
-        ctnt.setText(ctntView.getText(), TextView.BufferType.NORMAL);
+        ctnt.setText(word.getCtnt(), TextView.BufferType.NORMAL);
         ctnt.setEnabled(false);
-        pron.setText(pronView.getText(),TextView.BufferType.EDITABLE);
-        mean.setText(meanView.getText(),TextView.BufferType.EDITABLE);
-        tags.setText(tagsView.getText(),TextView.BufferType.EDITABLE);
-        syno.setText(synoView.getText(),TextView.BufferType.EDITABLE);
-        anto.setText(antoView.getText(),TextView.BufferType.EDITABLE);
+        pron.setText(word.getPron(),TextView.BufferType.EDITABLE);
+        mean.setText(word.getMean(),TextView.BufferType.EDITABLE);
+        tags.setText(word.getTags(),TextView.BufferType.EDITABLE);
+        syno.setText(word.getSyno(),TextView.BufferType.EDITABLE);
+        anto.setText(word.getAnto(),TextView.BufferType.EDITABLE);
 
 
         dialogBuilder.setPositiveButton("保存",  new DialogInterface.OnClickListener() {
@@ -191,6 +262,9 @@ public class WordDetailsActivity extends AppCompatActivity {
                         String newTags = tags.getText().toString().trim();
                         String newSyno = syno.getText().toString().trim();
                         String newAnto = anto.getText().toString().trim();
+                        if (!newTags.contentEquals(word.getTags())) {
+                            MainActivity.isChanged = true; // 词表改变
+                        }
                         try {
                             word.setPron(newPron);
                             word.setMean(newMean);
@@ -203,7 +277,7 @@ public class WordDetailsActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                         dialog.dismiss();
-                        setText();
+                        // setText();
                     }
                 });
             }
@@ -221,10 +295,12 @@ public class WordDetailsActivity extends AppCompatActivity {
         dialogBuilder.setPositiveButton("确定",  new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                int curFreq = Integer.parseInt(freqView.getText().toString());
+                int curFreq = Integer.parseInt(DetailsListUtils.getContent("使用频次"));
                 db.updateWordFreq(word.getCtnt(), 1);
                 word.setFreq(curFreq+1);
-                freqView.setText(String.valueOf(word.getFreq()));
+                //freqView.setText(String.valueOf(word.getFreq()));
+                //省事
+                setText();
                 Toast.makeText(getApplicationContext(), "增频成功", Toast.LENGTH_LONG).show();
             }
         });
@@ -248,15 +324,16 @@ public class WordDetailsActivity extends AppCompatActivity {
         dialogBuilder.setPositiveButton("确定",  new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                int curFreq = Integer.parseInt(freqView.getText().toString());
+                int curFreq = Integer.parseInt(DetailsListUtils.getContent("使用频次"));
                 if (curFreq == 0) {
                     dialog.dismiss();
                     Toast.makeText(getApplicationContext(), "不能再减少了", Toast.LENGTH_LONG).show();
                 } else {
                     db.updateWordFreq(word.getCtnt(), -1);
                     word.setFreq(curFreq-1);
-                    freqView.setText(String.valueOf(word.getFreq()));
-
+                    //freqView.setText(String.valueOf(word.getFreq()));
+                    //省事不省时
+                    setText();
                     Toast.makeText(getApplicationContext(), "减频成功", Toast.LENGTH_LONG).show();
                 }
             }
@@ -283,6 +360,7 @@ public class WordDetailsActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 db.deleteWord(word.getCtnt());
                 WordListUtils.delete(word.getCtnt());
+                MainActivity.isChanged = true; // 词表改变
                 Toast.makeText(getApplicationContext(), "删除成功", Toast.LENGTH_LONG).show();
                 finish();
             }
@@ -335,176 +413,61 @@ public class WordDetailsActivity extends AppCompatActivity {
     }
 
     void getNetInfoWordZh(final String ctnt){
+        @SuppressLint("HandlerLeak")
         final Handler handler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 Bundle data = msg.getData();
-                String pron = data.getString("pron");
-                String mean = data.getString("mean");
-                String syno = data.getString("syno");
-                String anto = data.getString("anto");
+                if (data.getBoolean("has")) {
+                    String pron = data.getString("pron");
+                    String mean = data.getString("mean");
+                    String syno = data.getString("syno");
+                    String anto = data.getString("anto");
 
-                word.setPron(pron);
-                pronView.setText(pron);
-                word.setMean(mean);
-                meanView.setText(mean);
-                word.setSyno(syno);
-                synoView.setText(syno);
-                word.setAnto(anto);
-                antoView.setText(anto);
+                    word.setPron(pron);
+                    word.setMean(mean);
+                    word.setSyno(syno);
+                    word.setAnto(anto);
+                    setText();
 
-                db.updateWordByNet(ctnt, pron, mean, syno, anto);
+                    db.updateWordByNet(ctnt, pron, mean, syno, anto);
 
-                Toast.makeText(getApplicationContext(), "补全完成", Toast.LENGTH_LONG).show();
-
-                // 当收到消息时就会执行这个方法
+                    Toast.makeText(getApplicationContext(), "补全完成", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "内容暂无", Toast.LENGTH_LONG).show();
+                }
             }
         };
 
-        new Thread(new Runnable(){
-            @Override
-            public void run() {
-                try {
-                    Message msg = new Message();
-                    Bundle data = new Bundle();
-
-                    Document doc = Jsoup.connect("http://webdict.youzhi.net/index.do")
-                            .data("id", "65bd6dc3c1b7488a80dbc0c24fcbf0e5")
-                            .data("words", ctnt)
-                            .userAgent("Mozilla")
-                            .post();
-
-                    // 拿details，包含读音和可能的近反义词
-                    Elements elsDetails = doc.select("div.details");
-                    Element elDetail = elsDetails.first();
-                    Elements elsP = elDetail.getElementsByTag("p");
-                    List<String> detail = elsP.eachText();
-                    // 拿读音
-                    data.putString("pron", detail.get(0).split("：")[1]);
-                    // 拿近反义词
-                    data.putString("syno", "");
-                    data.putString("anto", "");
-                    for (int i = 1; i < detail.size(); i++) {
-                        String[] str = detail.get(i).split("：");
-                        if (str[0].contentEquals("同义词")){
-                            data.putString("syno", str[1].replaceAll(",", " "));
-                        } else {
-                            data.putString("anto", str[1].replaceAll(",", " "));
-                        }
-                    }
-
-                    // 拿到h2：解释标题
-                    Elements elsH2 = doc.getElementsByTag("h2");
-                    String[] h2List = new String[3];
-                    for (int i = 0; i < elsH2.size(); i++) {
-                        h2List[i] = "-" + elsH2.get(i).text() + "-";
-                    }
-                    // 拿到ul：解释内容
-                    StringBuilder sb = new StringBuilder();
-                    Elements elsUl = doc.getElementsByTag("ul");
-                    for (int i = 0; i < elsUl.size(); i++) {
-                        // 添加标题
-                        sb.append(h2List[i]);
-                        sb.append("\n");
-                        // 添加当前标题下具体解释
-                        Elements elsLi = elsUl.get(i).getElementsByTag("li");
-                        for (int j = 0; j < elsLi.size(); j++) {
-                            sb.append(j+1);
-                            sb.append(". ");
-                            sb.append(elsLi.get(j).text());
-                            if (!(i == elsUl.size()-1 && j == elsLi.size()-1)){
-                                sb.append("\n");
-                            }
-                        }
-                        if (i != elsUl.size()-1){
-                            sb.append("\n");
-                        }
-                    }
-                    data.putString("mean", sb.toString());
-
-                    msg.setData(data);
-                    handler.sendMessage(msg);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        new Thread(new GetWordInfo(ctnt, handler)).start();
     }
 
     void getNetInfoCharZh(final String ctnt){
+        // 当收到消息时就会执行这个方法
+        @SuppressLint("HandlerLeak")
         final Handler handler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 Bundle data = msg.getData();
-                String pron = data.getString("pron");
-                String mean = data.getString("mean");
+                if (data.getBoolean("has")) {
+                    String pron = data.getString("pron");
+                    String mean = data.getString("mean");
 
-                word.setPron(pron);
-                pronView.setText(pron);
-                word.setMean(mean);
-                meanView.setText(mean);
+                    word.setPron(pron);
+                    word.setMean(mean);
+                    setText();
 
-                db.updateWordByNet(ctnt, pron, mean);
+                    db.updateWordByNet(ctnt, pron, mean);
 
-                Toast.makeText(getApplicationContext(), "补全完成", Toast.LENGTH_LONG).show();
-
-                // 当收到消息时就会执行这个方法
+                    Toast.makeText(getApplicationContext(), "补全完成", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "内容暂无", Toast.LENGTH_LONG).show();
+                }
             }
         };
 
-        new Thread(new Runnable(){
-            @Override
-            public void run() {
-                try {
-                    Document doc = Jsoup.connect("http://webdict.youzhi.net/index.do")
-                            .data("id", "65bd6dc3c1b7488a80dbc0c24fcbf0e5")
-                            .data("words", ctnt)
-                            .userAgent("Mozilla")
-                            .post();
-
-                    Message msg = new Message();
-                    Bundle data = new Bundle();
-
-                    // 拿读音
-                    Elements elsPron = doc.select("li.pingyin");
-                    Element elPron = elsPron.first();
-                    data.putString("pron", elPron.text());
-
-                    StringBuilder sb = new StringBuilder();
-
-                    // 拿到h2：解释标题
-                    Elements elsH2 = doc.getElementsByTag("h2");
-                    String h2 = elsH2.first().text();
-                    sb.append("-");
-                    sb.append(h2);
-                    sb.append("-");
-                    sb.append("\n");
-
-                    // 拿到ul：解释内容
-
-                    Elements elsMean = doc.select("div.result-main2");
-                    Element elMean = elsMean.first();
-                    Elements elsLi = elMean.getElementsByTag("li");
-                    for (int i = 0; i < elsLi.size(); i++){
-                        sb.append(i+1);
-                        sb.append(". ");
-                        sb.append(elsLi.get(i).text());
-                        if (i != elsLi.size()-1){
-                            sb.append("\n");
-                        }
-                    }
-
-                    data.putString("mean", sb.toString());
-
-                    msg.setData(data);
-                    handler.sendMessage(msg);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        new Thread(new GetCharInfo(ctnt, handler)).start();
     }
-
 }

@@ -2,8 +2,13 @@ package com.ljkjk.powod.utils;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+
+import com.ljkjk.powod.R;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
@@ -21,10 +26,12 @@ public class Utils {
 
     private static final SimpleDateFormat df = new SimpleDateFormat("yy-MM-dd");
 
+    // 日期转字符串
     public static String date2String(Date date){
         return df.format(date);
     }
 
+    // 字符串转日期
     public static Date string2Date(String string){
         Date date = null;
         try{
@@ -35,6 +42,7 @@ public class Utils {
         return date;
     }
 
+    // 设置服务器地址
     public static void setUrl(String ip, String port, String proj){
         Utils.ip = ip;
         Utils.port = port;
@@ -44,10 +52,12 @@ public class Utils {
         DOWNLOAD_URL = MAIN_URL + "download";
     }
 
+    // 验证URL是否合法（当前为验证三个项目是否都填了)
     public static boolean isUrlValid(){
         return !(ip.isEmpty() && port.isEmpty() && proj.isEmpty());
     }
 
+    // 计算字符串汉字的个数
     public static int getZhCharCount(String text) {
         int count = 0;
         String regEx = "[\u4e00-\u9fa5]";
@@ -59,6 +69,7 @@ public class Utils {
         return count;
     }
 
+    // 判断网络是否可用（待更新）
     public static boolean isNetworkAvailable(Activity activity)
     {
         Context context = activity.getApplicationContext();
@@ -77,5 +88,38 @@ public class Utils {
             }
         }
         return false;
+    }
+
+    // 计算toolbar高度，用来控制fab
+    public static int getToolbarHeight(Context context) {
+        final TypedArray styledAttributes = context.getTheme().obtainStyledAttributes(
+                new int[]{R.attr.actionBarSize});
+        int toolbarHeight = (int) styledAttributes.getDimension(0, 0);
+        styledAttributes.recycle();
+
+        return toolbarHeight;
+    }
+
+    // 收起软键盘
+    public static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager =
+                (InputMethodManager) activity.getSystemService(
+                        Activity.INPUT_METHOD_SERVICE);
+        View focusedView = activity.getCurrentFocus();
+        // 防止空指针
+        if (focusedView != null) {
+            inputMethodManager.hideSoftInputFromWindow(focusedView.getWindowToken(), 0);
+        }
+    }
+
+    public static boolean isAlpha(char c) {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+    }
+
+    public static char toUpperCase(char c) {
+        if (c >= 'a' && c <= 'z') {
+            c -= 32;
+        }
+        return c;
     }
 }

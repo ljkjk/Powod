@@ -6,4 +6,6 @@
     <color name="textPrimary">#BE000000</color>
     <color name="textSecondary">#80000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="background">#22666666</color>
+    <color name="blue">#12AAFF</color>
 </resources>

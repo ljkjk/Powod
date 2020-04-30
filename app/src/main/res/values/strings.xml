@@ -1,5 +1,10 @@
 <resources>
-    <string name="app_name">Powod</string>
+    <string name="app_name">powod</string>
+    <string name="toolbar_word_add">添加词语</string>
+    <string name="toolbar_word_details">词语详情</string>
+    <string name="toolbar_result">结果</string>
+    <string name="toolbar_setting">设置</string>
+    <string name="text_total">共 %1$d 项</string>
     <string name="action_refresh">刷新</string>
     <string name="action_tag">标签</string>
     <string name="action_search">搜索</string>
@@ -12,20 +17,14 @@
     <string name="action_increase">增频</string>
     <string name="action_decrease">减频</string>
     <string name="action_delete">删除</string>
-    <string name="detail_hint_mean">\n词义</string>
-    <string name="detail_hint_tags">\n标签</string>
-    <string name="detail_hint_syno">\n近义词</string>
-    <string name="detail_hint_anto">\n反义词</string>
-    <string name="detail_hint_freq">\n使用频次</string>
-    <string name="detail_hint_addt">\n创建日期</string>
     <string name="detail_placehoder">\n</string>
-    <string name="word_add">添加</string>
     <string name="word_add_ctnt">词语</string>
     <string name="word_add_pron">读音</string>
     <string name="word_add_mean">词义</string>
     <string name="word_add_tags">标签 (以空格分隔)</string>
     <string name="word_add_syno">近义词 (以空格分隔)</string>
     <string name="word_add_anto">反义词 (以空格分隔)</string>
+    <string name="word_add_get_net_info">补全</string>
     <string name="edit">保存</string>
     <string name="edit_ctnt">词语</string>
     <string name="edit_pron">读音</string>
@@ -33,9 +32,19 @@
     <string name="edit_tags">标签 (以空格分隔)</string>
     <string name="edit_syno">近义词 (以空格分隔)</string>
     <string name="edit_anto">反义词 (以空格分隔)</string>
-    <string name="setting_clear">清空列表</string>
     <string name="setting_input_ip">服务器地址</string>
     <string name="setting_input_port">端口</string>
     <string name="setting_input_project">项目名称</string>
+    <string name="setting_clear">清空列表</string>
+    <string name="setting_view_log">更新日志</string>
+
+    <string name="version">Version: 1.4</string>
+    <string name="log">1.0 - 20/04/13\n基本功能实现
+        \n1.1  -  20/04/14\n新增词语自动补全\n
+        \n1.2  -  20/04/17\n优化UI\n
+        \n1.3  -  20/04/22\n优化自动补全（来源：快快查、百度汉语）\n
+        \n1.4  -  20/04/29\n优化词表显示（依照排序方式分类）\n
+                        \n新增滑动手势\n
+        \n</string>
 
 </resources>
